@@ -1,28 +1,34 @@
-// KODE FINAL v7 (Perbaikan .getJSON)
+// KODE FINAL (Namespace Import + Perbaikan .get)
 // File: webhook.js
         
-import { getStore } from '@netlify/blobs';
+import * as blobs from '@netlify/blobs'; // Import semua sebagai 'blobs'
 
+// Ambil token rahasia kita dari Netlify Environment Variables
 const MY_SECRET_TOKEN = process.env.MY_WEBHOOK_TOKEN;
 
 export default async (request, context) => {
+  // 1. Cek metode (harus POST)
   if (request.method !== "POST") {
     return new Response("Metode tidak diizinkan", { status: 405 });
   }
 
+  // 2. CEK TOKEN KEAMANAN
   const providedToken = request.headers.get('authorization');
   if (!providedToken || providedToken !== MY_SECRET_TOKEN) {
     console.error("WEBHOOK DITOLAK: Token tidak valid.");
     return new Response("Token tidak valid", { status: 401 });
   }
   
+  // 3. Jika lolos, jalankan kode donasi
   try {
-    const store = getStore("donasi_store");
+    // Panggil fungsinya DARI 'blobs'
+    const store = blobs.getStore("donasi_store");
 
     let body;
     try {
       body = await request.json();
     } catch (e) {
+      // Jika body kosong (tes dari Socialbuzz), buat data palsu
       console.log("Webhook Tes Kosong Diterima (Token OK), membuat data palsu...");
       body = {
         id: "tes-" + new Date().getTime(),
@@ -34,6 +40,7 @@ export default async (request, context) => {
     
     console.log("Webhook Diterima (Token OK):", body);
 
+    // Format donasi
     const newDonation = {
       id: body.id || new Date().getTime(),
       name: body.name || "Donatur Anonim",
@@ -41,7 +48,7 @@ export default async (request, context) => {
       message: body.message || "Tanpa pesan"
     };
 
-    // DIUBAH: Bukan .getJSON(), tapi .get() dengan tipe json
+    // Ambil daftar donasi lama (menggunakan .get() BUKAN .getJSON())
     let donations = await store.get("donations_list", { type: "json" }) || [];
     donations.push(newDonation);
 
@@ -49,7 +56,7 @@ export default async (request, context) => {
       donations = donations.slice(-10);
     }
     
-    // .setJSON() sudah benar, biarkan saja
+    // Simpan kembali (fungsi .setJSON() sudah benar)
     await store.setJSON("donations_list", donations);
     return new Response("OK", { status: 200 });
 

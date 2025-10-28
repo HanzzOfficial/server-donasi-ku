@@ -1,7 +1,7 @@
-// KODE ASLI (dengan Database)
-import { getDeployStore } from "@netlify/blobs";
+// KODE ASLI (CommonJS)
+const { getDeployStore } = require("@netlify/blobs");
 
-export default async (request, context) => {
+exports.handler = async (event, context) => {
   try {
     // 1. Hubungkan ke database
     const store = getDeployStore({ context });
@@ -10,12 +10,16 @@ export default async (request, context) => {
     const donations = await store.getJSON("donations_list") || [];
 
     // 3. Kembalikan data sebagai JSON yang bisa dibaca Roblox
-    return Response.json({
-      donations: donations
-    });
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ donations: donations })
+    };
     
   } catch (error) {
     console.error("Error mengambil donasi:", error);
-    return Response.json({ donations: [] }, { status: 500 });
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ donations: [] })
+    };
   }
 };

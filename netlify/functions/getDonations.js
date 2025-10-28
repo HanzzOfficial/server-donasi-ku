@@ -1,13 +1,15 @@
-// KODE FINAL v7 (Perbaikan .getJSON)
+// KODE FINAL (Namespace Import + Perbaikan .get)
 // File: getDonations.js
 
-import { getStore } from '@netlify/blobs';
+import * as blobs from '@netlify/blobs'; // Import semua sebagai 'blobs'
 
 export default async (request, context) => {
   try {
-    const store = getStore("donasi_store"); 
+    // Panggil fungsinya DARI 'blobs'
+    // "donasi_store" adalah nama database kita dari file netlify.toml
+    const store = blobs.getStore("donasi_store"); 
     
-    // DIUBAH: Bukan .getJSON(), tapi .get() dengan tipe json
+    // Ambil daftar donasi (menggunakan .get() BUKAN .getJSON())
     const donations = await store.get("donations_list", { type: "json" }) || [];
 
     // Kembalikan data (Status 200 OK)
@@ -15,6 +17,7 @@ export default async (request, context) => {
     
   } catch (error) {
     console.error("Error mengambil donasi:", error);
-    return Response.json({ donations: [], { status: 500 });
+    // Jika ada error, kirim status 500
+    return Response.json({ donations: [] }, { status: 500 });
   }
 };

@@ -1,38 +1,18 @@
-import { getDeployStore } from "@netlify/blobs";
+// KODE SANGAT SEDERHANA UNTUK TES (Tanpa Database)
 
 export default async (request, context) => {
-  if (request.method !== "POST") {
-    return new Response("Metode tidak diizinkan", { status: 405 });
-  }
   
   try {
+    // Kita tetap coba baca data yang masuk
     const body = await request.json();
-    console.log("Webhook Diterima:", body);
-
-    const newDonation = {
-      id: body.id || new Date().getTime(),
-      name: body.name || "Donatur Anonim",
-      amount: body.amount || 0,
-      message: body.message || "Tanpa pesan"
-    };
-
-    const store = getDeployStore({ context });
-    let donations = await store.getJSON("donations_list") || [];
-    donations.push(newDonation);
-
-    if (donations.length > 10) {
-      donations = donations.slice(-10); 
-    }
-    
-    await store.setJSON("donations_list", donations);
-    return new Response("OK", { status: 200 });
-
-  } catch (error) {
-    console.error("Error di webhook:", error);
-    return new Response("Server Error", { status: 500 });
+    console.log("--- Webhook Diterima (Tes Sederhana) ---");
+    console.log(body);
+  } catch (e) {
+    console.error("Error membaca body webhook:", e);
   }
+
+  // Langsung kirim "OK" ke Socialbuzz, tidak perlu disimpan
+  return new Response("OK", { status: 200 });
 };
 
-export const config = {
-  path: "/.netlify/functions/webhook"
-};
+// Pastikan kode "export const config" SUDAH DIHAPUS

@@ -1,22 +1,24 @@
-// KODE FINAL (CommonJS dengan Dynamic Import)
+// KODE FINAL (ESM dengan getStore)
 // File: webhook.js
         
-let store;
+import { getStore } from '@netlify/blobs';
 
-exports.handler = async (event, context) => {
-  if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: "Metode tidak diizinkan" };
+export default async (request, context) => {
+  // Hanya izinkan metode POST
+  if (request.method !== "POST") {
+    return new Response("Metode tidak diizinkan", { status: 405 });
   }
   
   try {
-    if (!store) {
-      const blobsModule = await import('@netlify/blobs');
-      const getDeployStore = blobsModule.default;
-      store = getDeployStore({ context });
-    }
+    // Gunakan getStore
+    const store = getStore({ context });
 
     let body;
-    if (!event.body || event.body === "null") {
+    try {
+      // Coba parse body
+      body = await request.json();
+    } catch (e) {
+      // Jika body kosong (tes dari Socialbuzz), buat data palsu
       console.log("Webhook Tes Kosong Diterima, membuat data palsu...");
       body = {
         id: "tes-" + new Date().getTime(),
@@ -24,12 +26,11 @@ exports.handler = async (event, context) => {
         amount: 10000,
         message: "Ini tes notifikasi!"
       };
-    } else {
-      body = JSON.parse(event.body);
     }
     
     console.log("Webhook Diterima:", body);
 
+    // Format donasi
     const newDonation = {
       id: body.id || new Date().getTime(),
       name: body.name || "Donatur Anonim",
@@ -37,19 +38,23 @@ exports.handler = async (event, context) => {
       message: body.message || "Tanpa pesan"
     };
 
+    // Ambil daftar donasi lama
     let donations = await store.getJSON("donations_list") || [];
     donations.push(newDonation);
 
+    // Simpan 10 terakhir
     if (donations.length > 10) {
       donations = donations.slice(-10);
     }
     
+    // Simpan kembali ke database
     await store.setJSON("donations_list", donations);
 
-    return { statusCode: 200, body: "OK" };
+    // Kirim "OK" ke Socialbuzz
+    return new Response("OK", { status: 200 });
 
   } catch (error) {
     console.error("Error di webhook:", error);
-    return { statusCode: 500, body: "Server Error" };
+    return new Response("Server Error", { status: 500 });
   }
 };

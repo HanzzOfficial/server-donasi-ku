@@ -1,13 +1,13 @@
-// KODE FINAL (Namespace Import)
+// KODE FINAL v6 (Sintaks v7 yang Benar)
 // File: getDonations.js
 
-import * as blobs from '@netlify/blobs'; // Import semua sebagai 'blobs'
+// Ini adalah cara import yang BENAR untuk library v7
+import { getStore } from '@netlify/blobs';
 
 export default async (request, context) => {
   try {
-    // Panggil fungsinya DARI 'blobs'
-    // "donasi_store" adalah nama database kita dari file netlify.toml
-    const store = blobs.getStore("donasi_store"); 
+    // Kita panggil 'getStore' dengan NAMA database dari netlify.toml
+    const store = getStore("donasi_store"); 
     
     // Ambil daftar donasi
     const donations = await store.getJSON("donations_list") || [];

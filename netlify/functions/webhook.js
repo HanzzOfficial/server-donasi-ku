@@ -1,7 +1,7 @@
-// KODE FINAL v4 (Default Import)
+// KODE FINAL v5 (Namespace Import)
 // File: webhook.js
         
-import getStore from '@netlify/blobs'; // DIUBAH: Tidak ada kurung {}
+import * as blobs from '@netlify/blobs'; // DIUBAH: Import semua sebagai 'blobs'
 
 export default async (request, context) => {
   // Hanya izinkan metode POST
@@ -10,8 +10,8 @@ export default async (request, context) => {
   }
   
   try {
-    // DIUBAH: Kita panggil 'getStore' dengan NAMA database
-    const store = getStore("donasi_store");
+    // DIUBAH: Panggil fungsinya DARI 'blobs'
+    const store = blobs.getStore("donasi_store");
 
     let body;
     try {

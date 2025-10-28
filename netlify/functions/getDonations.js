@@ -1,12 +1,12 @@
-// KODE FINAL (ESM dengan getStore)
+// KODE FINAL v4 (Default Import)
 // File: getDonations.js
 
-import { getStore } from '@netlify/blobs';
+import getStore from '@netlify/blobs'; // DIUBAH: Tidak ada kurung {}
 
 export default async (request, context) => {
   try {
-    // Gunakan getStore, bukan getDeployStore
-    const store = getStore({ context });
+    // DIUBAH: Kita panggil 'getStore' dengan NAMA database dari netlify.toml
+    const store = getStore("donasi_store"); 
     
     // Ambil daftar donasi
     const donations = await store.getJSON("donations_list") || [];

@@ -1,4 +1,4 @@
-// KODE FINAL (CommonJS dengan Dynamic Import)
+// KODE FINAL (Lebih Aman)
         
 let store; // Cache
 
@@ -16,8 +16,21 @@ exports.handler = async (event, context) => {
       store = getDeployStore({ context });
     }
 
-    // Ambil data dari Socialbuzz
-    const body = JSON.parse(event.body);
+    let body;
+    // CEK JIKA event.body KOSONG (dari tombol tes)
+    if (!event.body || event.body === "null") {
+      console.log("Webhook Tes Kosong Diterima, membuat data palsu...");
+      body = {
+        id: "tes-" + new Date().getTime(),
+        name: "Tester Socialbuzz",
+        amount: 10000,
+        message: "Ini tes notifikasi!"
+      };
+    } else {
+      // Jika tidak kosong, parse
+      body = JSON.parse(event.body);
+    }
+    
     console.log("Webhook Diterima:", body);
 
     // Format donasi

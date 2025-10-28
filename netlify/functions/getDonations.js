@@ -13,11 +13,17 @@ export default async (request, context) => {
     const donations = await store.getJSON("donations_list") || [];
 
     // Kembalikan data (Status 200 OK)
-    return Response.json({ donations: donations });
+    return new Response(JSON.stringify({ donations: donations }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
     
   } catch (error) {
     console.error("Error mengambil donasi:", error);
     // Jika ada error, kirim status 500
-    return Response.json({ donations: [] }, { status: 500 });
+    return new Response(JSON.stringify({ donations: [] }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 };

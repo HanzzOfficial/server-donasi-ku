@@ -13,22 +13,48 @@ export default async (request, context) => {
     // Panggil fungsinya DARI 'blobs'
     const store = blobs.getStore("donasi_store");
 
-    let body;
+    // Robust body parsing: Socialbuzz may send JSON, form-urlencoded, or plain text.
+    let body = {};
     try {
-      // Coba parse body
-      body = await request.json();
-    } catch (e) {
-      // Jika body kosong (tes dari Socialbuzz), buat data palsu
-      console.log("Webhook Tes Kosong Diterima, membuat data palsu...");
-      body = {
-        id: "tes-" + new Date().getTime(),
-        name: "Tester Socialbuzz",
-        amount: 10000,
-        message: "Ini tes notifikasi!"
-      };
+      const contentType = (request.headers && (request.headers.get ? request.headers.get('content-type') : request.headers['content-type'])) || '';
+
+      if (contentType.includes('application/json')) {
+        body = await request.json();
+      } else if (contentType.includes('application/x-www-form-urlencoded')) {
+        const text = await request.text();
+        const params = new URLSearchParams(text);
+        body = Object.fromEntries(params.entries());
+        // coerce numeric fields
+        if (body.amount) body.amount = Number(body.amount);
+      } else {
+        // Try json first, then try to parse as urlencoded, else take raw text
+        try {
+          body = await request.json();
+        } catch (e1) {
+          const text = await request.text();
+          if (!text) {
+            // empty webhook (often used for testing) -> keep body empty so we can decide later
+            body = {};
+          } else {
+            // attempt urlencoded parse
+            const params = new URLSearchParams(text);
+            const parsed = Object.fromEntries(params.entries());
+            if (Object.keys(parsed).length) {
+              body = parsed;
+              if (body.amount) body.amount = Number(body.amount);
+            } else {
+              // fallback: plain text -> put into message
+              body = { message: text };
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Gagal parse body webhook:', err);
+      body = {};
     }
-    
-    console.log("Webhook Diterima:", body);
+
+    console.log('Webhook Diterima:', body);
 
     // Format donasi
     const newDonation = {

@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 
 app.use(express.json());
+// Tambahkan parser untuk form-urlencoded (Socialbuzz sering mengirim form data)
+app.use(express.urlencoded({ extended: true }));
 
 // Database sementara kita
 let donationQueue = [];

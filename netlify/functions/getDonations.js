@@ -1,15 +1,20 @@
-// KODE ASLI (CommonJS)
-const { getDeployStore } = require("@netlify/blobs");
+// KODE FINAL (CommonJS dengan Dynamic Import)
+
+// Kita buat 'store' di luar agar bisa di-cache
+let store;
 
 exports.handler = async (event, context) => {
   try {
-    // 1. Hubungkan ke database
-    const store = getDeployStore({ context });
+    // Jika 'store' belum di-load, load sekarang pakai import()
+    if (!store) {
+      const { getDeployStore } = await import('@netlify/blobs');
+      store = getDeployStore({ context });
+    }
     
-    // 2. Ambil daftar donasi
+    // Ambil daftar donasi
     const donations = await store.getJSON("donations_list") || [];
 
-    // 3. Kembalikan data sebagai JSON yang bisa dibaca Roblox
+    // Kembalikan data
     return {
       statusCode: 200,
       body: JSON.stringify({ donations: donations })

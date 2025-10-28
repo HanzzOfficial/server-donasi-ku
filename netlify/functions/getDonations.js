@@ -1,63 +1,32 @@
-// KODE FINAL (Lebih Aman)
-        
-let store; // Cache
+// KODE FINAL (CommonJS dengan Dynamic Import)
+
+// Kita buat 'store' di luar agar bisa di-cache
+let store;
 
 exports.handler = async (event, context) => {
-  // Hanya izinkan metode POST
-  if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: "Metode tidak diizinkan" };
-  }
-  
   try {
-    // Load store jika belum ada pakai import()
+    // Jika 'store' belum di-load, load sekarang pakai import()
     if (!store) {
       const blobsModule = await import('@netlify/blobs');
       const getDeployStore = blobsModule.default; // Ambil dari 'default'
       store = getDeployStore({ context });
     }
-
-    let body;
-    // CEK JIKA event.body KOSONG (dari tombol tes)
-    if (!event.body || event.body === "null") {
-      console.log("Webhook Tes Kosong Diterima, membuat data palsu...");
-      body = {
-        id: "tes-" + new Date().getTime(),
-        name: "Tester Socialbuzz",
-        amount: 10000,
-        message: "Ini tes notifikasi!"
-      };
-    } else {
-      // Jika tidak kosong, parse
-      body = JSON.parse(event.body);
-    }
     
-    console.log("Webhook Diterima:", body);
+    // Ambil daftar donasi
+    const donations = await store.getJSON("donations_list") || [];
 
-    // Format donasi
-    const newDonation = {
-      id: body.id || new Date().getTime(),
-      name: body.name || "Donatur Anonim",
-      amount: body.amount || 0,
-      message: body.message || "Tanpa pesan"
+    // Kembalikan data (Status 200 OK)
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ donations: donations })
     };
-
-    // Ambil daftar donasi lama
-    let donations = await store.getJSON("donations_list") || [];
-    donations.push(newDonation);
-
-    // Simpan 10 terakhir
-    if (donations.length > 10) {
-      donations = donations.slice(-10);
-    }
     
-    // Simpan kembali ke database
-    await store.setJSON("donations_list", donations);
-
-    // Kirim "OK" ke Socialbuzz
-    return { statusCode: 200, body: "OK" };
-
   } catch (error) {
-    console.error("Error di webhook:", error);
-    return { statusCode: 500, body: "Server Error" };
+    console.error("Error mengambil donasi:", error);
+    // Jika ada error, kirim status 500
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ donations: [] })
+    };
   }
 };

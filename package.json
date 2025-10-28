@@ -1,12 +1,12 @@
 {
-  "name": "server-donasi-render",
+  "name": "server-donasi-netlify-final",
   "version": "1.0.0",
-  "description": "Server perantara untuk Roblox",
-  "main": "index.js",
+  "description": "Server perantara donasi untuk Roblox",
+  "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "@netlify/blobs": "^7.0.0"
   }
 }

@@ -1,28 +1,22 @@
-// KODE FINAL (CommonJS dengan Dynamic Import)
+// KODE FINAL (ESM dengan getStore)
 // File: getDonations.js
 
-let store;
+import { getStore } from '@netlify/blobs';
 
-exports.handler = async (event, context) => {
+export default async (request, context) => {
   try {
-    if (!store) {
-      const blobsModule = await import('@netlify/blobs');
-      const getDeployStore = blobsModule.default; 
-      store = getDeployStore({ context });
-    }
+    // Gunakan getStore, bukan getDeployStore
+    const store = getStore({ context });
     
+    // Ambil daftar donasi
     const donations = await store.getJSON("donations_list") || [];
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ donations: donations })
-    };
+    // Kembalikan data (Status 200 OK)
+    return Response.json({ donations: donations });
     
   } catch (error) {
     console.error("Error mengambil donasi:", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ donations: [] })
-    };
+    // Jika ada error, kirim status 500
+    return Response.json({ donations: [] }, { status: 500 });
   }
 };

@@ -1,13 +1,12 @@
 {
   "name": "server-donasi-netlify",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Server perantara donasi untuk Roblox",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@netlify/blobs": "^1.0.0"
+    "@netlify/blobs": "^7.0.0"
   }
 }

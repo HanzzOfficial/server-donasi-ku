@@ -15,6 +15,6 @@ export default async (request, context) => {
     
   } catch (error) {
     console.error("Error mengambil donasi:", error);
-    return Response.json({ donations: [] }, { status: 500 });
+    return Response.json({ donations: [], { status: 500 });
   }
 };

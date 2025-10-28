@@ -1,18 +1,21 @@
-// KODE ASLI (dengan Database)
-import { getDeployStore } from "@netlify/blobs";
+// KODE ASLI (CommonJS)
+const { getDeployStore } = require("@netlify/blobs");
 
-export default async (request, context) => {
+exports.handler = async (event, context) => {
   // Hanya izinkan metode POST
-  if (request.method !== "POST") {
-    return new Response("Metode tidak diizinkan", { status: 405 });
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      body: "Metode tidak diizinkan"
+    };
   }
   
   try {
     // 1. Ambil data JSON dari Socialbuzz
-    const body = await request.json();
+    const body = JSON.parse(event.body);
     console.log("Webhook Diterima:", body);
 
-    // 2. Format data donasi (Sesuaikan 'name', 'amount', 'message' jika perlu)
+    // 2. Format data donasi
     const newDonation = {
       id: body.id || new Date().getTime(),
       name: body.name || "Donatur Anonim",
@@ -31,17 +34,23 @@ export default async (request, context) => {
 
     // 6. Batasi hanya 10 donasi terakhir
     if (donations.length > 10) {
-      donations = donations.slice(-10); // Ambil 10 item terakhir
+      donations = donations.slice(-10);
     }
     
     // 7. Simpan kembali daftar baru ke database
     await store.setJSON("donations_list", donations);
 
     // 8. Kirim "OK" ke Socialbuzz
-    return new Response("OK", { status: 200 });
+    return {
+      statusCode: 200,
+      body: "OK"
+    };
 
   } catch (error) {
     console.error("Error di webhook:", error);
-    return new Response("Server Error", { status: 500 });
+    return {
+      statusCode: 500,
+      body: "Server Error"
+    };
   }
 };

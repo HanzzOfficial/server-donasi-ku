@@ -1,20 +1,21 @@
-import { getDeployStore } from "@netlify/blobs";
+// KODE SANGAT SEDERHANA UNTUK TES (Tanpa Database)
 
 export default async (request, context) => {
-  try {
-    const store = getDeployStore({ context });
-    const donations = await store.getJSON("donations_list") || [];
+  
+  console.log("Fungsi getDonations BERHASIL dipanggil!");
 
-    return Response.json({
-      donations: donations
-    });
-    
-  } catch (error) {
-    console.error("Error mengambil donasi:", error);
-    return Response.json({ donations: [] }, { status: 500 });
-  }
+  // Kirim data donasi palsu untuk tes
+  const fakeDonation = {
+    id: 12345,
+    name: "Donatur Tes",
+    amount: 50000,
+    message: "Ini tes! Jika muncul, berarti BERHASIL!"
+  };
+
+  // Kembalikan data palsu ini sebagai JSON
+  return Response.json({
+    donations: [fakeDonation]
+  });
 };
 
-export const config = {
-  path: "/.netlify/functions/getDonations"
-};
+// Pastikan kode "export const config" SUDAH DIHAPUS

@@ -1,7 +1,8 @@
-// KODE FINAL v6 (DENGAN TOKEN KEAMANAN)
+// KODE FINAL v6 (Sintaks v7 yang Benar)
 // File: webhook.js
         
-import * as blobs from '@netlify/blobs';
+// Ini adalah cara import yang BENAR untuk library v7
+import { getStore } from '@netlify/blobs';
 
 // Ambil token rahasia kita dari Netlify Environment Variables
 const MY_SECRET_TOKEN = process.env.MY_WEBHOOK_TOKEN;
@@ -12,19 +13,17 @@ export default async (request, context) => {
     return new Response("Metode tidak diizinkan", { status: 405 });
   }
 
-  // 2. CEK TOKEN KEAMANAN (Bagian Baru)
-  // Kita asumsikan Socialbuzz mengirim token di header 'authorization'
+  // 2. CEK TOKEN KEAMANAN
   const providedToken = request.headers.get('authorization');
-
   if (!providedToken || providedToken !== MY_SECRET_TOKEN) {
-    console.error("WEBHOOK DITOLAK: Token tidak valid atau tidak ada.");
-    // 401 Unauthorized = Token salah/tidak ada
+    console.error("WEBHOOK DITOLAK: Token tidak valid.");
     return new Response("Token tidak valid", { status: 401 });
   }
-
+  
   // 3. Jika lolos, jalankan kode donasi
   try {
-    const store = blobs.getStore("donasi_store");
+    // Kita panggil 'getStore' dengan NAMA database
+    const store = getStore("donasi_store");
 
     let body;
     try {
@@ -39,8 +38,9 @@ export default async (request, context) => {
       };
     }
     
-    console.log("Webhook Diterima dan DISETUJUI (Token OK):", body);
+    console.log("Webhook Diterima (Token OK):", body);
 
+    // Format donasi
     const newDonation = {
       id: body.id || new Date().getTime(),
       name: body.name || "Donatur Anonim",

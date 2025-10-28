@@ -1,7 +1,7 @@
-// KODE FINAL (ESM dengan getStore)
+// KODE FINAL v4 (Default Import)
 // File: webhook.js
         
-import { getStore } from '@netlify/blobs';
+import getStore from '@netlify/blobs'; // DIUBAH: Tidak ada kurung {}
 
 export default async (request, context) => {
   // Hanya izinkan metode POST
@@ -10,8 +10,8 @@ export default async (request, context) => {
   }
   
   try {
-    // Gunakan getStore
-    const store = getStore({ context });
+    // DIUBAH: Kita panggil 'getStore' dengan NAMA database
+    const store = getStore("donasi_store");
 
     let body;
     try {

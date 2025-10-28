@@ -1,62 +1,46 @@
-// KODE FINAL (Namespace Import)
+// KODE FINAL v6 (DENGAN TOKEN KEAMANAN)
 // File: webhook.js
         
-import * as blobs from '@netlify/blobs'; // Import semua sebagai 'blobs'
+import * as blobs from '@netlify/blobs';
+
+// Ambil token rahasia kita dari Netlify Environment Variables
+const MY_SECRET_TOKEN = process.env.MY_WEBHOOK_TOKEN;
 
 export default async (request, context) => {
-  // Hanya izinkan metode POST
+  // 1. Cek metode (harus POST)
   if (request.method !== "POST") {
     return new Response("Metode tidak diizinkan", { status: 405 });
   }
-  
+
+  // 2. CEK TOKEN KEAMANAN (Bagian Baru)
+  // Kita asumsikan Socialbuzz mengirim token di header 'authorization'
+  const providedToken = request.headers.get('authorization');
+
+  if (!providedToken || providedToken !== MY_SECRET_TOKEN) {
+    console.error("WEBHOOK DITOLAK: Token tidak valid atau tidak ada.");
+    // 401 Unauthorized = Token salah/tidak ada
+    return new Response("Token tidak valid", { status: 401 });
+  }
+
+  // 3. Jika lolos, jalankan kode donasi
   try {
-    // Panggil fungsinya DARI 'blobs'
     const store = blobs.getStore("donasi_store");
 
-    // Robust body parsing: Socialbuzz may send JSON, form-urlencoded, or plain text.
-    let body = {};
+    let body;
     try {
-      const contentType = (request.headers && (request.headers.get ? request.headers.get('content-type') : request.headers['content-type'])) || '';
-
-      if (contentType.includes('application/json')) {
-        body = await request.json();
-      } else if (contentType.includes('application/x-www-form-urlencoded')) {
-        const text = await request.text();
-        const params = new URLSearchParams(text);
-        body = Object.fromEntries(params.entries());
-        // coerce numeric fields
-        if (body.amount) body.amount = Number(body.amount);
-      } else {
-        // Try json first, then try to parse as urlencoded, else take raw text
-        try {
-          body = await request.json();
-        } catch (e1) {
-          const text = await request.text();
-          if (!text) {
-            // empty webhook (often used for testing) -> keep body empty so we can decide later
-            body = {};
-          } else {
-            // attempt urlencoded parse
-            const params = new URLSearchParams(text);
-            const parsed = Object.fromEntries(params.entries());
-            if (Object.keys(parsed).length) {
-              body = parsed;
-              if (body.amount) body.amount = Number(body.amount);
-            } else {
-              // fallback: plain text -> put into message
-              body = { message: text };
-            }
-          }
-        }
-      }
-    } catch (err) {
-      console.warn('Gagal parse body webhook:', err);
-      body = {};
+      body = await request.json();
+    } catch (e) {
+      console.log("Webhook Tes Kosong Diterima (Token OK), membuat data palsu...");
+      body = {
+        id: "tes-" + new Date().getTime(),
+        name: "Tester Socialbuzz",
+        amount: 10000,
+        message: "Ini tes notifikasi!"
+      };
     }
+    
+    console.log("Webhook Diterima dan DISETUJUI (Token OK):", body);
 
-    console.log('Webhook Diterima:', body);
-
-    // Format donasi
     const newDonation = {
       id: body.id || new Date().getTime(),
       name: body.name || "Donatur Anonim",
@@ -64,23 +48,18 @@ export default async (request, context) => {
       message: body.message || "Tanpa pesan"
     };
 
-    // Ambil daftar donasi lama
     let donations = await store.getJSON("donations_list") || [];
     donations.push(newDonation);
 
-    // Simpan 10 terakhir
     if (donations.length > 10) {
       donations = donations.slice(-10);
     }
     
-    // Simpan kembali ke database
     await store.setJSON("donations_list", donations);
-
-    // Kirim "OK" ke Socialbuzz
     return new Response("OK", { status: 200 });
 
   } catch (error) {
-    console.error("Error di webhook:", error);
+    console.error("Error di webhook (setelah cek token):", error);
     return new Response("Server Error", { status: 500 });
   }
 };

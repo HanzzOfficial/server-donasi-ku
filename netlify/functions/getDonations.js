@@ -1,11 +1,12 @@
-// KODE FINAL v5 (Namespace Import)
+// KODE FINAL (Namespace Import)
 // File: getDonations.js
 
-import * as blobs from '@netlify/blobs'; // DIUBAH: Import semua sebagai 'blobs'
+import * as blobs from '@netlify/blobs'; // Import semua sebagai 'blobs'
 
 export default async (request, context) => {
   try {
-    // DIUBAH: Panggil fungsinya DARI 'blobs'
+    // Panggil fungsinya DARI 'blobs'
+    // "donasi_store" adalah nama database kita dari file netlify.toml
     const store = blobs.getStore("donasi_store"); 
     
     // Ambil daftar donasi

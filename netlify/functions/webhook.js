@@ -1,7 +1,7 @@
-// KODE FINAL v5 (Namespace Import)
+// KODE FINAL (Namespace Import)
 // File: webhook.js
         
-import * as blobs from '@netlify/blobs'; // DIUBAH: Import semua sebagai 'blobs'
+import * as blobs from '@netlify/blobs'; // Import semua sebagai 'blobs'
 
 export default async (request, context) => {
   // Hanya izinkan metode POST
@@ -10,7 +10,7 @@ export default async (request, context) => {
   }
   
   try {
-    // DIUBAH: Panggil fungsinya DARI 'blobs'
+    // Panggil fungsinya DARI 'blobs'
     const store = blobs.getStore("donasi_store");
 
     let body;
